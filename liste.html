@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitap Listesi</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- D3.js kütüphanesi -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .book-list {
+            max-width: 1200px;
+            margin: 0 auto;
+            list-style: none;
+            padding: 0;
+        }
+
+        .book-item {
+            background-color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .book-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .book-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .book-details span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .book-details i {
+            color: #888;
+            width: 16px;
+        }
+
+        .book-title {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .book-item {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div id="bookList"></div>
+
+    <script>
+        let allBooks = [];
+
+        function formatAuthorName(authorName) {
+            if (!authorName) return 'Yazar Belirtilmemiş';
+            
+            if (authorName.includes(',')) {
+                const [lastName, firstName] = authorName.split(',').map(part => part.trim());
+                return `${firstName} ${lastName}`;
+            }
+            
+            return authorName;
+        }
+
+        function loadBooks() {
+            d3.csv('assets/data/literatur.csv').then(function(data) {
+                allBooks = data
+                    .filter(d => d['Item Type']?.toLowerCase() === 'book')
+                    .sort((a, b) => new Date(b['Date Added']) - new Date(a['Date Added']))
+                    .slice(0, 7);
+
+                renderBooks();
+            }).catch(function(error) {
+                console.error('Veri yüklenirken hata oluştu:', error);
+                alert('Veriler yüklenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
+            });
+        }
+
+        function renderBooks() {
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = '';
+
+            const ul = document.createElement('ul');
+            ul.className = 'book-list';
+
+            allBooks.forEach((book, index) => {
+                const date = new Date(book['Date Added']).toLocaleDateString('tr-TR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                const li = document.createElement('li');
+                li.className = 'book-item';
+                li.style.animationDelay = `${index * 0.1}s`;
+
+                li.innerHTML = `
+                    <div class="book-content">
+                        <h3 class="book-title">${book.Title || 'Başlık Belirtilmemiş'}</h3>
+                        <div class="book-details">
+                            <span>
+                                <i class="fas fa-user-edit"></i>
+                                ${formatAuthorName(book.Author)}
+                            </span>
+                            <span>
+                                <i class="fas fa-building"></i>
+                                ${book.Publisher || 'Yayınevi Belirtilmemiş'}
+                            </span>
+                            ${book.ISBN ? `
+                            <span>
+                                <i class="fas fa-barcode"></i>
+                                ISBN: ${book.ISBN}
+                            </span>
+                            ` : ''}
+                            <span>
+                                <i class="fas fa-calendar"></i>
+                                ${book['Publication Year'] || 'Yıl Belirtilmemiş'}
+                            </span>
+                            <span>
+                                <i class="fas fa-language"></i>
+                                ${book.Language || 'Dil Belirtilmemiş'}
+                            </span>
+                            <span>
+                                <i class="fas fa-clock"></i>
+                                ${date}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                ul.appendChild(li);
+            });
+
+            bookList.appendChild(ul);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBooks);
+    </script>
+</body>
+</html>

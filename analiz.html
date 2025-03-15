@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literatür Veritabanı Analizi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-radius: 15px;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="none"/><circle cx="3" cy="3" r="1" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+
+        .page-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        .page-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            font-weight: 400;
+        }
+
+        .chart-container {
+            background: var(--card-background);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: transform var(--transition-speed) ease, 
+                      box-shadow var(--transition-speed) ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.4rem;
+            position: relative;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .chart-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 2px;
+            transition: width var(--transition-speed) ease;
+        }
+
+        .chart-container:hover .chart-title::after {
+            width: 100px;
+        }
+
+        .stats-summary {
+            background: var(--card-background);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            transition: transform var(--transition-speed) ease;
+            cursor: default;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .stat-item:hover .stat-icon {
+            transform: scale(1.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .chart-filters {
+            position: relative;
+        }
+
+        .form-select {
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: var(--card-background);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .form-select:hover, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            .chart-title {
+                font-size: 1.2rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .stat-icon {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animasyonlar */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-summary, .chart-container {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .stat-item:nth-child(1) { animation-delay: 0.1s; }
+        .stat-item:nth-child(2) { animation-delay: 0.2s; }
+        .stat-item:nth-child(3) { animation-delay: 0.3s; }
+        .stat-item:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Menü Stilleri */
+        .main-navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-container {
+            padding: 0.5rem 1rem;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1.4rem;
+            padding: 0.5rem 1rem;
+            margin: 0;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .navbar-brand::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1rem;
+            right: 1rem;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover::after {
+            transform: scaleX(1);
+        }
+
+        .navbar-toggler {
+            border: none;
+            color: white;
+            padding: 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-nav {
+            margin-left: auto;
+        }
+
+        .nav-item {
+            position: relative;
+            margin: 0 0.2rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            padding: 1rem 1.5rem !important;
+            position: relative;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1rem;
+            right: 1rem;
+            height: 3px;
+            background: white;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            transform: scaleX(1);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: rgba(0,0,0,0.1);
+                padding: 1rem;
+                border-radius: 8px;
+                margin-top: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.8rem 1rem !important;
+            }
+
+            .nav-link::before {
+                display: none;
+            }
+
+            .nav-item {
+                margin: 0.2rem 0;
+            }
+        }
+        footer {
+            margin-top: auto;
+            background: white;
+            padding: 2rem 0;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-link {
+            color: var(--text-muted);
+            transition: color var(--transition-speed) ease;
+        }
+
+        .social-link:hover {
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg main-navbar sticky-top">
+        <div class="container navbar-container">
+            <a class="navbar-brand d-flex align-items-center" href="https://hadisliteraturu.com">
+                <i class="fas fa-book-open me-2"></i>
+                Hadis Literatürü
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home me-1"></i> Ana Sayfa
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="analiz.html">
+                            <i class="fas fa-chart-bar me-1"></i> Analiz
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="son_cikanlar.html">
+                            <i class="fas fa-clock me-1"></i> Son Eklenenler
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title text-center">Hadis Literatürü Veritabanı İstatistikleri</h1>
+            <p class="page-subtitle text-center">Analiz ve Görselleştirme</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-summary row">
+            <div class="col-md-3 stat-item">
+                <i class="fas fa-book-open stat-icon"></i>
+                <div class="stat-value total-publications">0</div>
+                <div class="stat-label">Toplam Yayın</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <i class="fas fa-language stat-icon"></i>
+                <div class="stat-value total-languages">0</div>
+                <div class="stat-label">Farklı Dil</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-value total-authors">0</div>
+                <div class="stat-label">Yazar/Editör</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <i class="fas fa-building stat-icon"></i>
+                <div class="stat-value total-publishers">0</div>
+                <div class="stat-label">Yayınevi</div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container large-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="chart-title flex-grow-1 mb-0">
+                            <i class="fas fa-chart-line"></i>
+                            Yıllara Göre Yayın Sayısı
+                        </h3>
+                        <div class="chart-filters">
+                            <select id="archiveFilter" class="form-select" style="width: 200px;">
+                                <option value="all">Tüm Arşiv Türleri</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="yearlyPublicationChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="chart-container small-chart">
+                    <h3 class="chart-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Yayın Türlerine Göre Dağılım
+                    </h3>
+                    <canvas id="publicationTypeChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="chart-container medium-chart">
+                    <h3 class="chart-title">
+                        <i class="fas fa-building"></i>
+                        En Çok Yayın Yapan Yayınevleri
+                    </h3>
+                    <canvas id="publisherChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="chart-container small-chart">
+                    <h3 class="chart-title">
+                        <i class="fas fa-language"></i>
+                        Yayın Dillerine Göre Dağılım
+                    </h3>
+                    <canvas id="languageChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="chart-container medium-chart">
+                    <h3 class="chart-title">
+                        <i class="fas fa-users"></i>
+                        En Aktif Kitap Yazarları
+                    </h3>
+                    <canvas id="authorChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/analysis.js"></script>
+</body>
+
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="copyright">
+                © 2025 Hadis Literatürü Veritabanı. Tüm hakları saklıdır.
+            </div>
+            <div class="social-links">
+                <a href="https://x.com/HLYE1" class="social-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                <a href="https://github.com/orhancinici/literatur_web_sayfasi" class="social-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</html> 

@@ -1,0 +1,522 @@
+/* Menü Stilleri */
+.main-navbar {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-container {
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand {
+    color: rgb(181, 180, 180) !important;
+    font-weight: 700;
+    font-size: 1.4rem;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    position: relative;
+    text-decoration: none;
+}
+
+.navbar-brand::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 3px;
+    background: rgba(171, 79, 79, 0.3);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover::after {
+    transform: scaleX(1);
+}
+
+.navbar-toggler {
+    border: none;
+    color: rgba(171, 79, 79, 0.3);
+    padding: 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+.navbar-nav {
+    margin-left: auto;
+}
+
+.nav-item {
+    position: relative;
+    margin: 0 0.2rem;
+}
+
+.nav-link {
+    color: rgb(181, 180, 180) !important;
+    font-weight: 500;
+    padding: 1 rem 1.5rem !important;
+    position: relative;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 3px;
+    background: rgba(171, 79, 79, 0.3);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.nav-link:hover::before,
+.nav-link.active::before {
+    transform: scaleX(1);
+}
+
+.nav-link.active {
+    color: rgb(181, 180, 180) !important;
+    font-weight: 600;
+}
+
+.nav-link:hover {
+    color: rgba(171, 79, 79, 0.3);
+}
+
+@media (max-width: 991px) {
+    .navbar-collapse {
+        background: rgba(0,0,0,0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+
+    .nav-link {
+        padding: 0.8rem 1rem !important;
+    }
+
+    .nav-link::before {
+        display: none;
+    }
+
+    .nav-item {
+        margin: 0.2rem 0;
+    }
+}
+
+/* Genel Stiller */
+body {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #F8FAFF, #F0F5FF);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.custom-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Başlık ve Arama Bölümü */
+.header-search-section {
+    margin-bottom: 2rem;
+}
+
+.search-wrapper {
+    max-width: 800px;
+    margin极 0 auto;
+}
+
+.search-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(99, 102, 241, 0.08);
+    padding: 0.5rem;
+}
+
+.search-container .input-group {
+    gap: 0.5rem;
+}
+
+.search-container .form-control,
+.search-container .form-select,
+.search-container .btn {
+    border-radius: 6px;
+}
+
+#globalSearch {
+    border: 1px solid #CBD5E1;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+#globalSearch:极 focus {
+    box-shadow: none;
+    border-color: #6366F1;
+}
+
+.search-container .form-select {
+    border: 1px solid #CBD5E1;
+    padding: 0.8rem 1rem;
+    font-size: 1.1rem;
+    background-color: white;
+}
+
+.search-container .form-select:focus {
+    box-shadow: none;
+    border-color: #6366F1;
+}
+
+.search-container .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    background-color: #6366F1;
+    border-color: #6366F极 1;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.search-container .btn:hover {
+    background-color: #4F46E5;
+    border-color: #4F46E5;
+    transform: translateY(-1px);
+}
+
+/* İstatistik Kartları */
+.stats-section {
+    margin: 2rem 0;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+}
+
+.bg-blue {
+    background-color: #4F46E5;
+}
+
+.bg-green {
+    background-color: #10B981;
+}
+
+.bg-purple {
+    background-color: #8B5CF6;
+}
+
+.bg-orange {
+    background-color: #F59E0B;
+}
+
+.stat-card .card-subtitle {
+    color: #64748B;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stat-card .card-title {
+    color: #1E293B;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+/* Tablo Stilleri */
+.table-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 极 0.05);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border: 1px solid #CBD5E1;
+}
+
+/* Tablo Başlıkları için Yeni Stil */
+.table thead th {
+    background-color: #F8FAFF;
+    border-bottom: 2px solid #CBD5E1;
+    font-weight: 700;
+    color: #64748B;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+}
+
+.table tbody tr {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #F8FAFF;
+}
+
+/* DataTables Özelleştirmeleri */
+.dataTables_wrapper .dataTables_filter {
+    display: none;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 20px;
+    padding: 5px 30px 5px 15px;
+    border-color: #CBD5E1;
+    color: #64748B;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 20px;
+    margin: 0 3px;
+    color: #64748B !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #6366F1 !important;
+    border-color: #6366F1 !important;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #F8FAFF !important;
+    border-color: #6366F1 !important;
+    color: #6366F1 !important;
+}
+
+/* Modal Stilleri */
+.modal-dialog.modal-lg {
+    max-width: 800px;
+    margin: 1.75rem auto;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to right bottom, #ffffff, #f8f9fa);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    background: linear-gradient(to right, #ffffff, #f8f9fa);
+    border-radius: 0 0 15px 15px;
+}
+
+/* Modal açılış animasyonu */
+.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+.modal-title {
+    color: #1E293B;
+}
+
+.book-details {
+    padding: 1rem;
+}
+
+.book-details p {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #CBD5E1;
+    color: #64748B;
+}
+
+.book-details p strong {
+    color: #1E293B;
+}
+
+.book-details p:last-child {
+    border-bottom: none;
+}
+
+/* Özet metni için özel stil */
+.book-details p:has(strong:contains("Özet")) span {
+    display: block;
+    margin-top: 0.5rem;
+    text-align: justify;
+    line-height: 1.6;
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+    .custom-container {
+        padding: 1rem;
+    }
+    
+    .header-search-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-wrapper {
+        padding: 0 1rem;
+    }
+    
+    .search-container .input-group {
+        flex-direction: column;
+    }
+    
+    .search-container .form-control,
+    .search-container .form-select,
+    .search-container .btn {
+        width: 100%;
+        max-width: 100%;
+        margin: 0.25rem 0;
+    }
+    
+    .table-wrapper {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+}
+
+/* Animasyonlar */
+.search-container {
+    transition: all 0.3s ease;
+}
+
+.search-container:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+}
+
+/* DataTables Butonları */
+.dt-buttons {
+    margin-bottom: 1rem;
+    float: right !important;
+}
+
+.dt-button {
+    padding: 6px 16px !important;
+    margin-right: 5px !important;
+    color: #64748B !important;
+    transition: all 0.2s ease;
+}
+
+.dt-button:hover {
+    background-color: #F8FAFF !important;
+    border-color: #6366F1 !important;
+    color: #6366F1 !important;
+}
+
+/* Filtre Stilleri */
+.filters-section {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.filters-section .form-select {
+    border: 1px solid #cbd5e1;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #475569;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.filters-section .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.filters-section .form-select:hover {
+    border-color: #6366f1;
+}
+
+.filters-section .btn-outline-danger {
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    transition: all 0.2s ease;
+}
+
+.filters-section .btn-outline-danger:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
+/* Filtre Toggle Butonu */
+.filters-toggle {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+.filters-toggle .btn-outline-primary {
+    border-color: #6366f1;
+    color: #6366f1;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.filters-toggle .btn-outline-primary:hover,
+.filters-toggle .btn-outline-primary[aria-expanded="true"] {
+    background-color: #6366f1;
+    color: white;
+}
+
+/* Filtre Collapse Animasyonu */
+.collapse {
+    transition: all 0.2s ease-out;
+}
+
+.collapsing {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.2s ease;
+}
+
+/* Filtre Bölümü Gölgesi */
+.filters-section {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
