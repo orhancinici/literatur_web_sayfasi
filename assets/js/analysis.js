@@ -321,90 +321,173 @@ function formatAuthorName(author) {
     // Boş veya geçersiz değerleri kontrol et
     if (!author || typeof author !== 'string') return '';
     
-    // İsmi temizle ve virgülle ayır
-    const parts = author.trim().split(',');
-    if (parts.length !== 2) return author.trim(); // Eğer virgülle ayrılmış format değilse olduğu gibi döndür
+    // İsmi temizle
+    const cleanedName = author.trim();
     
-    // Soyisim ve ismi al
-    const lastName = parts[0].trim();
-    const firstName = parts[1].trim();
+    // Virgülle ayrılmış format ise (Soyad, İsim)
+    if (cleanedName.includes(',')) {
+        const parts = cleanedName.split(',');
+        if (parts.length >= 2) {
+            // Soyisim ve ismi al
+            const lastName = parts[0].trim();
+            const firstName = parts[1].trim();
+            
+            // İsim soyisim formatında birleştir
+            return `${firstName} ${lastName}`;
+        }
+    }
     
-    // İsim soyisim formatında birleştir
-    return `${firstName} ${lastName}`;
+    // Eğer virgülle ayrılmış format değilse veya işlenemezse olduğu gibi döndür
+    return cleanedName;
 }
 
 function createAuthorChart(data) {
-    const authors = {};
+    // Kişilerin tüm rollerini tek bir objede birleştir
+    const allContributors = {};
     
     // Sadece kitap türündeki yayınları filtrele
     const bookData = data.filter(d => (d['Item Type'] || d.type)?.toLowerCase() === 'book');
     
     bookData.forEach(d => {
-        // Sadece Author alanını kullan
+        // Yazarları işle
         if (d.Author) {
             d.Author.split(';').forEach(author => {
                 if (author && author.trim()) {
                     const formattedName = formatAuthorName(author);
-                    authors[formattedName] = (authors[formattedName] || 0) + 1;
+                    if (!allContributors[formattedName]) {
+                        allContributors[formattedName] = { author: 0, editor: 0, translator: 0, total: 0 };
+                    }
+                    allContributors[formattedName].author++;
+                    allContributors[formattedName].total++;
+                }
+            });
+        }
+        
+        // Editörleri işle
+        if (d.Editor) {
+            d.Editor.split(';').forEach(editor => {
+                if (editor && editor.trim()) {
+                    const formattedName = formatAuthorName(editor);
+                    if (!allContributors[formattedName]) {
+                        allContributors[formattedName] = { author: 0, editor: 0, translator: 0, total: 0 };
+                    }
+                    allContributors[formattedName].editor++;
+                    allContributors[formattedName].total++;
+                }
+            });
+        }
+        
+        // Çevirmenleri işle
+        if (d.Translator) {
+            d.Translator.split(';').forEach(translator => {
+                if (translator && translator.trim()) {
+                    const formattedName = formatAuthorName(translator);
+                    if (!allContributors[formattedName]) {
+                        allContributors[formattedName] = { author: 0, editor: 0, translator: 0, total: 0 };
+                    }
+                    allContributors[formattedName].translator++;
+                    allContributors[formattedName].total++;
                 }
             });
         }
     });
 
-    const topAuthors = Object.entries(authors)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 15);
-
+    // Toplam katkı sayısına göre sırala ve en üst 25 kişiyi al
+    const topContributors = Object.entries(allContributors)
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, 25);
+    
     // Başlığı güncelle
     const chartContainer = document.querySelector('.chart-container:has(#authorChart) .chart-title');
     if (chartContainer) {
         chartContainer.innerHTML = `
             <i class="fas fa-users me-2"></i>
-            En Aktif Kitap Yazarları
+            Basılı Yayın Kategorisinde En Aktif Katkıda Bulunanlar
         `;
     }
+
+    // Veri seti hazırla
+    const labels = topContributors.map(item => item[0]);
+    const authorData = topContributors.map(item => item[1].author);
+    const editorData = topContributors.map(item => item[1].editor);
+    const translatorData = topContributors.map(item => item[1].translator);
 
     return new Chart(document.getElementById('authorChart'), {
         type: 'bar',
         data: {
-            labels: topAuthors.map(a => a[0]),
-            datasets: [{
-                label: 'Kitap Sayısı',
-                data: topAuthors.map(a => a[1]),
-                backgroundColor: CHART_COLORS.quaternary
-            }]
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Yazar',
+                    data: authorData,
+                    backgroundColor: CHART_COLORS.primary
+                },
+                {
+                    label: 'Editör',
+                    data: editorData,
+                    backgroundColor: CHART_COLORS.secondary
+                },
+                {
+                    label: 'Çevirmen',
+                    data: translatorData,
+                    backgroundColor: CHART_COLORS.tertiary
+                }
+            ]
         },
         options: {
             responsive: true,
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'top'
                 },
                 tooltip: {
                     callbacks: {
+                        // Tooltip içeriğini özelleştir
+                        title: function(context) {
+                            return context[0].label; // Kişi adı
+                        },
                         label: function(context) {
-                            return `Kitap Sayısı: ${context.raw}`;
+                            const labels = {
+                                0: 'Yazar olarak',
+                                1: 'Editör olarak',
+                                2: 'Çevirmen olarak'
+                            };
+                            
+                            if (context.raw === 0) {
+                                return null; // Sıfır değerleri gösterme
+                            }
+                            
+                            return `${labels[context.datasetIndex]}: ${context.raw} kitap`;
+                        },
+                        footer: function(context) {
+                            // Toplam hesapla
+                            const person = context[0].label;
+                            const contributor = allContributors[person];
+                            return `Toplam Katkı: ${contributor.total} kitap`;
                         }
                     }
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                },
                 x: {
+                    stacked: true,
                     ticks: {
                         callback: function(value) {
                             const label = this.getLabelForValue(value);
                             // Uzun isimleri kısalt
-                            if (label.length > 20) {
-                                return label.substr(0, 18) + '...';
+                            if (label.length > 15) {
+                                return label.substr(0, 13) + '...';
                             }
                             return label;
                         }
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
                     }
                 }
             }
@@ -437,10 +520,302 @@ function initializeCharts() {
         createLanguageChart(filteredData);
         createPublisherChart(filteredData);
         createAuthorChart(filteredData);
+        
+        // Yeni eklenen grafik - En Çok Üretim Yapan 25 Yazar
+        createTopProductiveAuthorsChart(filteredData);
     }).catch(function(error) {
         console.error('Veri yüklenirken hata oluştu:', error);
         alert('Veriler yüklenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
     });
+}
+
+// En çok üretim yapan 25 yazarı gösteren grafik
+function createTopProductiveAuthorsChart(data) {
+    console.log('En çok üretim yapan yazarlar grafiği oluşturuluyor...');
+    
+    try {
+        // Veri kontrolü
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.error('Geçerli veri bulunamadı');
+            return;
+        }
+        
+        // Yayın türleri ve etiketleri
+        const typeLabels = {
+            'book': 'Kitap',
+            'thesis': 'Tez',
+            'journal article': 'Makale',
+            'conference paper': 'Bildiri',
+            'encyclopedia article': 'Ansiklopedi Maddesi',
+            'book chapter': 'Kitap Bölümü',
+            // Zotero formatları
+            'booksection': 'Kitap Bölümü',
+            'bookSection': 'Kitap Bölümü',
+            'journalarticle': 'Makale',
+            'journalArticle': 'Makale',
+            'conferencepaper': 'Bildiri',
+            'conferencePaper': 'Bildiri',
+            // Alternatif eşleşmeler
+            'makale': 'Makale',
+            'bildiri': 'Bildiri',
+            'tez': 'Tez',
+            'kitap': 'Kitap',
+            'kitap bölümü': 'Kitap Bölümü',
+            'ansiklopedi maddesi': 'Ansiklopedi Maddesi'
+        };
+        
+        // Kategori renkleri
+        const categoryColors = {
+            'Kitap': CHART_COLORS.primary,
+            'Tez': CHART_COLORS.secondary,
+            'Makale': CHART_COLORS.tertiary,
+            'Bildiri': CHART_COLORS.quaternary,
+            'Ansiklopedi Maddesi': CHART_COLORS.quinary,
+            'Kitap Bölümü': CHART_COLORS.colors[5]
+        };
+        
+        // Hedef kategoriler
+        const targetCategories = [
+            'Kitap', 'Tez', 'Makale', 'Bildiri', 'Ansiklopedi Maddesi', 'Kitap Bölümü'
+        ];
+        
+        // Yazarların katkılarını takip etmek için bir nesne
+        const authorContributions = {};
+        
+        // Veriyi işle
+        let categoryStats = {
+            'Kitap': 0,
+            'Tez': 0,
+            'Makale': 0,
+            'Bildiri': 0,
+            'Ansiklopedi Maddesi': 0,
+            'Kitap Bölümü': 0,
+            'Tanımlanamayan': 0
+        };
+        
+        // İlk birkaç veriyi logla
+        console.log('İlk 5 verinin formatı:');
+        data.slice(0, 5).forEach((d, i) => {
+            console.log(`Veri ${i+1}:`, {
+                itemType: d['Item Type'] || d.type,
+                archiveLocation: d['Archive Location'],
+                title: d.Title
+            });
+        });
+        
+        // Kitap bölümü olanları logla
+        console.log('Kitap Bölümü olarak tespit edilen ilk kayıt:');
+        const bookSectionSample = data.find(d => 
+            (d['Item Type'] || d.type || '').toLowerCase() === 'booksection' || 
+            (d['Archive Location'] || '').includes('Kitap Bölümü')
+        );
+        console.log(bookSectionSample ? {
+            itemType: bookSectionSample['Item Type'] || bookSectionSample.type,
+            archiveLocation: bookSectionSample['Archive Location'],
+            title: bookSectionSample.Title
+        } : 'Kitap Bölümü kaydı bulunamadı');
+        
+        data.forEach(d => {
+            // İtem tipini al ve küçük harfe çevir
+            const rawItemType = (d['Item Type'] || d.type || '').toLowerCase();
+            // Archive Location bilgisini al
+            const archiveLocation = (d['Archive Location'] || '').toLowerCase();
+            
+            // Yayın türünü belirle (Önce Item Type'a bakılır)
+            let category = typeLabels[rawItemType];
+            
+            // Eğer doğrudan eşleşme yoksa, archive location'a bak
+            if (!category && archiveLocation) {
+                // Doğrudan eşleşme kontrolü
+                if (typeLabels[archiveLocation]) {
+                    category = typeLabels[archiveLocation];
+                } else {
+                    // Kısmi eşleşme kontrolü
+                    for (const [key, value] of Object.entries(typeLabels)) {
+                        if (archiveLocation.includes(key.toLowerCase())) {
+                            category = value;
+                            break;
+                        }
+                    }
+                }
+            }
+                
+            // Hala bulunamadıysa, içeriğe göre tahmini eşleştirme yap
+            if (!category) {
+                // Özel durumlar - bookSection için ekstra kontrol
+                if (rawItemType === 'booksection' || rawItemType === 'bookSection' || 
+                    archiveLocation.includes('kitap bölümü')) {
+                    category = 'Kitap Bölümü';
+                }
+                // Tez kategorisi için kontrol
+                else if (rawItemType.includes('thesis') || archiveLocation.includes('tez')) {
+                    category = 'Tez';
+                }
+                // Kitap kategorisi için kontrol
+                else if (rawItemType.includes('book') && !rawItemType.includes('section') && 
+                       !archiveLocation.includes('bölüm')) {
+                    category = 'Kitap';
+                }
+                // Makale kategorisi için kontrol
+                else if (rawItemType.includes('article') && !rawItemType.includes('encyclopedia') && 
+                       !archiveLocation.includes('ansiklopedi')) {
+                    category = 'Makale';
+                }
+                // Bildiri kategorisi için kontrol
+                else if (rawItemType.includes('paper') || rawItemType.includes('conference') || 
+                       archiveLocation.includes('bildiri')) {
+                    category = 'Bildiri';
+                }
+                // Ansiklopedi maddesi kategorisi için kontrol
+                else if ((rawItemType.includes('encyclopedia') || archiveLocation.includes('ansiklopedi')) && 
+                       (rawItemType.includes('article') || archiveLocation.includes('madde'))) {
+                    category = 'Ansiklopedi Maddesi';
+                }
+                // Son kontrol - bölüm kelimesi varsa Kitap Bölümüdür
+                else if (rawItemType.includes('section') || archiveLocation.includes('bölüm')) {
+                    category = 'Kitap Bölümü';
+                }
+            }
+            
+            // Kategori istatistiğini güncelle
+            if (category && targetCategories.includes(category)) {
+                categoryStats[category]++;
+            } else {
+                categoryStats['Tanımlanamayan']++;
+            }
+            
+            // Hedeflenen kategorilerden biriyse işle
+            if (category && targetCategories.includes(category)) {
+                // Yazarları işleme
+                if (d.Author) {
+                    d.Author.split(';').forEach(author => {
+                        if (author && author.trim()) {
+                            const formattedName = formatAuthorName(author);
+                            
+                            // Yazar katkılarını takip et
+                            if (!authorContributions[formattedName]) {
+                                authorContributions[formattedName] = {
+                                    total: 0
+                                };
+                                
+                                // Her kategori için 0 değeri başlangıçta ata
+                                targetCategories.forEach(cat => {
+                                    authorContributions[formattedName][cat] = 0;
+                                });
+                            }
+                            
+                            // Kategoriye göre katkı sayısını artır
+                            authorContributions[formattedName][category]++;
+                            authorContributions[formattedName].total++;
+                        }
+                    });
+                }
+            }
+        });
+        
+        // Kategori istatistiklerini logla
+        console.log('Kategori İstatistikleri:', categoryStats);
+        
+        // Eğer hiç veri toplanmadıysa uyarı ver
+        if (Object.keys(authorContributions).length === 0) {
+            console.warn('Hiç yazar katkısı bulunamadı, veri yapısını kontrol edin.');
+            return;
+        }
+        
+        console.log('Toplam yazar sayısı:', Object.keys(authorContributions).length);
+        
+        // Toplam katkı sayısına göre sırala ve en üst 25 yazarı al
+        const topAuthors = Object.entries(authorContributions)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 35);
+        
+        // Grafik veri setini hazırla
+        const labels = topAuthors.map(author => author[0]);
+        const datasets = targetCategories.map((category, index) => {
+            return {
+                label: category,
+                data: topAuthors.map(author => author[1][category] || 0),
+                backgroundColor: categoryColors[category] || CHART_COLORS.colors[index % CHART_COLORS.colors.length]
+            };
+        });
+        
+        // Canvas elementini kontrol et
+        const canvas = document.getElementById('topProductiveAuthorsChart');
+        if (!canvas) {
+            console.error('topProductiveAuthorsChart ID\'li canvas elementi bulunamadı');
+            return;
+        }
+        
+        // Grafiği oluştur
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label; // Yazar adı
+                            },
+                            label: function(context) {
+                                const label = context.dataset.label;
+                                const value = context.raw;
+                                
+                                if (value === 0) {
+                                    return null; // Sıfır değerleri gösterme
+                                }
+                                
+                                return `${label}: ${value} adet`;
+                            },
+                            footer: function(context) {
+                                const author = context[0].label;
+                                const contribution = authorContributions[author];
+                                return `Toplam: ${contribution.total} yayın`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            callback: function(value) {
+                                const label = this.getLabelForValue(value);
+                                // Uzun isimleri kısalt
+                                if (label.length > 15) {
+                                    return label.substr(0, 12) + '...';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Yazar katkıları grafiği başarıyla oluşturuldu.');
+    } catch (error) {
+        console.error('Grafik oluşturulurken hata oluştu:', error);
+    }
 }
 
 // Sayfa yüklendiğinde grafikleri başlat

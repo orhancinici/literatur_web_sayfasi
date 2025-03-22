@@ -145,15 +145,46 @@ function setupFilters(data) {
         typeFilter.appendChild(option);
     });
 
-    // Yazarları doldur
-    const authors = [...new Set(data.flatMap(item => 
-        (item.Author || '').split(';').map(author => author.trim())
-    ))].filter(Boolean);
+    // Tüm kişileri topla (yazarlar, editörler, çevirmenler)
+    const allContributors = new Set();
+    
+    // Yazarları topla
+    data.forEach(item => {
+        if (item.Author) {
+            item.Author.split(';').map(author => author.trim()).filter(Boolean).forEach(author => {
+                allContributors.add(author);
+            });
+        }
+        
+        // Editörleri ekle
+        if (item.Editor) {
+            item.Editor.split(';').map(editor => editor.trim()).filter(Boolean).forEach(editor => {
+                allContributors.add(editor);
+            });
+        }
+        
+        // Çevirmenleri ekle
+        if (item.Translator) {
+            item.Translator.split(';').map(translator => translator.trim()).filter(Boolean).forEach(translator => {
+                allContributors.add(translator);
+            });
+        }
+    });
+    
+    // Kişi filtresini doldur
     const authorFilter = document.getElementById('authorFilter');
-    authors.sort().forEach(author => {
+    
+    // Kişileri ad-soyad şeklinde görünen formata göre sırala
+    const sortedContributors = Array.from(allContributors).sort((a, b) => {
+        const formattedA = formatAuthorName(a).toLowerCase();
+        const formattedB = formatAuthorName(b).toLowerCase();
+        return formattedA.localeCompare(formattedB, 'tr');
+    });
+    
+    sortedContributors.forEach(person => {
         const option = document.createElement('option');
-        option.value = author;
-        option.textContent = formatAuthorName(author);
+        option.value = person;
+        option.textContent = formatAuthorName(person);
         authorFilter.appendChild(option);
     });
 
@@ -161,13 +192,30 @@ function setupFilters(data) {
     $.fn.dataTable.ext.search.push(function(settings, searchData, index, rowData, counter) {
         const year = yearFilter.value;
         const type = typeFilter.value;
-        const author = authorFilter.value;
+        const person = authorFilter.value;
 
         const yearMatch = !year || rowData['Publication Year']?.toString() === year;
         const typeMatch = !type || rowData['Item Type'] === type;
-        const authorMatch = !author || (rowData['Author'] || '').includes(author);
+        
+        // Kişi filtrelemesi (yazar, editör veya çevirmen olarak bulunabilir)
+        let personMatch = true;
+        if (person) {
+            personMatch = false;
+            // Yazar olarak kontrol et
+            if ((rowData['Author'] || '').includes(person)) {
+                personMatch = true;
+            }
+            // Editör olarak kontrol et
+            else if ((rowData['Editor'] || '').includes(person)) {
+                personMatch = true;
+            }
+            // Çevirmen olarak kontrol et
+            else if ((rowData['Translator'] || '').includes(person)) {
+                personMatch = true;
+            }
+        }
 
-        return yearMatch && typeMatch && authorMatch;
+        return yearMatch && typeMatch && personMatch;
     });
 
     // Filtre değişikliklerini dinle
@@ -234,50 +282,110 @@ function initializeDataTable(data) {
         
         if (!searchValue) return true;
 
+        // Arama değeri boşluklarla ayrılmış birden fazla kelime içeriyorsa
+        const hasMultipleWords = searchValue.trim().includes(' ');
+        const searchTerms = hasMultipleWords ? 
+                            searchValue.split(' ').filter(term => term.trim() !== '') : 
+                            [searchValue];
+
+        // Tabloda görünmeyen ek alanları da aramaya dahil et (Editör gibi)
+        const additionalFields = ['Editor', 'Translator', 'DOI', 'ISBN', 'ISSN'];
+        const additionalData = additionalFields.map(field => normalizeText(rowData[field] || ''));
+
         // Seçili kategoriye göre arama
         if (searchCategory === 'Tüm Alanlarda') {
             // Tüm sütunlarda ara
             for (let i = 0; i < data.length; i++) {
                 const cellData = normalizeText(data[i]);
-                if (cellData.includes(searchValue)) {
+                
+                // Çok kelimeli arama için (tüm terimler bulunmalı)
+                if (hasMultipleWords) {
+                    let allTermsFound = true;
+                    for (let term of searchTerms) {
+                        if (!cellData.includes(term)) {
+                            allTermsFound = false;
+                            break;
+                        }
+                    }
+                    if (allTermsFound) return true;
+                } 
+                // Tek kelimeli arama için
+                else if (cellData.includes(searchValue)) {
+                    return true;
+                }
+            }
+            
+            // Tabloda görünmeyen ek alanlarda da ara
+            for (let i = 0; i < additionalData.length; i++) {
+                const extraData = additionalData[i];
+                if (!extraData) continue;
+                
+                // Çok kelimeli arama için (tüm terimler bulunmalı)
+                if (hasMultipleWords) {
+                    let allTermsFound = true;
+                    for (let term of searchTerms) {
+                        if (!extraData.includes(term)) {
+                            allTermsFound = false;
+                            break;
+                        }
+                    }
+                    if (allTermsFound) return true;
+                } 
+                // Tek kelimeli arama için
+                else if (extraData.includes(searchValue)) {
                     return true;
                 }
             }
         } else {
-            // Seçili kategoriye göre filtreleme
-            const columnIndex = {
-                'Makale': 2,
-                'Tez': 2,
-                'Bildiri': 2,
-                'Kitap': 2,
-                'Ansiklopedi Maddesi': 2,
-                'Kitap Bölümü': 2
-            }[searchCategory];
-
-            if (columnIndex !== undefined) {
-                const cellData = normalizeText(data[columnIndex]);              
-                if (searchCategory === 'Makale') {
-                    return cellData === normalizeText(itemTypeTranslations['journalArticle']) && 
-                           normalizeText(data[0]).includes(searchValue);
-                } else if (searchCategory === 'Tez') {
-                    return cellData === normalizeText(itemTypeTranslations['thesis']) && 
-                           normalizeText(data[0]).includes(searchValue);
-                } else if (searchCategory === 'Bildiri') {
-                    return cellData === normalizeText(itemTypeTranslations['conferencePaper']) && 
-                           normalizeText(data[0]).includes(searchValue);
-
-                } else if (searchCategory === 'Kitap') {
-                    return cellData === normalizeText(itemTypeTranslations['book']) && 
-                           normalizeText(data[0]).includes(searchValue);
-                           
-                } else if (searchCategory === 'Ansiklopedi Maddesi') {
-                    return cellData === normalizeText(itemTypeTranslations['encyclopediaArticle']) && 
-                           normalizeText(data[0]).includes(searchValue);
-
-                } else if (searchCategory === 'Kitap Bölümü') {
-                    return cellData === normalizeText(itemTypeTranslations['bookSection']) && 
-                           normalizeText(data[0]).includes(searchValue);
+            // Belirli kategorilerde arama için yayın türünü kontrol et
+            const itemTypeMap = {
+                'Makale': 'journalArticle',
+                'Tez': 'thesis',
+                'Bildiri': 'conferencePaper',
+                'Kitap': 'book',
+                'Ansiklopedi Maddesi': 'encyclopediaArticle',
+                'Kitap Bölümü': 'bookSection'
+            };
+            
+            // Seçilen kategori için yayın türü kontrolü
+            const selectedItemType = itemTypeMap[searchCategory];
+            if (!selectedItemType || rowData['Item Type'] !== selectedItemType) {
+                return false; // Kategori eşleşmiyorsa gösterme
+            }
+            
+            // Başlık alanında arama
+            const titleData = normalizeText(data[0]); // 0. indeks başlık sütunu
+            
+            // Yazar alanında arama
+            const authorData = normalizeText(data[1]); // 1. indeks yazar sütunu
+            
+            // Görünmeyen alanlarda da ara (editör, çevirmen, vb.)
+            const searchFields = [titleData, authorData, ...additionalData];
+            
+            // Çok kelimeli arama için
+            if (hasMultipleWords) {
+                for (const fieldData of searchFields) {
+                    if (!fieldData) continue;
+                    
+                    let allTermsFound = true;
+                    for (let term of searchTerms) {
+                        if (!fieldData.includes(term)) {
+                            allTermsFound = false;
+                            break;
+                        }
+                    }
+                    if (allTermsFound) return true;
                 }
+                return false;
+            } 
+            // Tek kelimeli arama için
+            else {
+                for (const fieldData of searchFields) {
+                    if (fieldData && fieldData.includes(searchValue)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
         return false;

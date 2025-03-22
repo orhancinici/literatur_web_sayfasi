@@ -1,9 +1,26 @@
+/* Renk değişkenleri */
+:root {
+    --primary-color: #6c5ce7;
+    --primary-hover: #5649c0;
+    --secondary-color: #00cec9;
+    --accent-color: #ff7675;
+    --accent-hover: #e84d4b;
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --light-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-color: #dfe6e9;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+}
+
 /* Menü Stilleri */
 .main-navbar {
     position: relative;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--gradient-primary);
     padding: 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .navbar-container {
@@ -11,13 +28,14 @@
 }
 
 .navbar-brand {
-    color: rgb(181, 180, 180) !important;
+    color: white !important;
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     padding: 0.5rem 1rem;
     margin: 0;
     position: relative;
     text-decoration: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .navbar-brand::after {
@@ -27,7 +45,7 @@
     left: 1rem;
     right: 1rem;
     height: 3px;
-    background: rgba(171, 79, 79, 0.3);
+    background: var(--accent-color);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -56,9 +74,9 @@
 }
 
 .nav-link {
-    color: rgb(181, 180, 180) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
     font-weight: 500;
-    padding: 1 rem 1.5rem !important;
+    padding: 1rem 1.5rem !important;
     position: relative;
     transition: all 0.3s ease;
     text-transform: uppercase;
@@ -73,7 +91,7 @@
     left: 1rem;
     right: 1rem;
     height: 3px;
-    background: rgba(171, 79, 79, 0.3);
+    background: var(--accent-color);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -84,12 +102,12 @@
 }
 
 .nav-link.active {
-    color: rgb(181, 180, 180) !important;
+    color: white !important;
     font-weight: 600;
 }
 
 .nav-link:hover {
-    color: rgba(171, 79, 79, 0.3);
+    color: var(--accent-color) !important;
 }
 
 @media (max-width: 991px) {
@@ -116,8 +134,9 @@
 /* Genel Stiller */
 body {
     min-height: 100vh;
-    background: linear-gradient(to bottom, #F8FAFF, #F0F5FF);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background: linear-gradient(to bottom, #f6f8ff, #eef2ff);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: var(--text-primary);
 }
 
 .custom-container {
@@ -128,19 +147,22 @@ body {
 
 /* Başlık ve Arama Bölümü */
 .header-search-section {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    padding-top: 1rem;
 }
 
 .search-wrapper {
     max-width: 800px;
-    margin极 0 auto;
+    margin: 0 auto;
 }
 
 .search-container {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 15px rgba(99, 102, 241, 0.08);
-    padding: 0.5rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(108, 92, 231, 0.1);
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
 }
 
 .search-container .input-group {
@@ -154,14 +176,15 @@ body {
 }
 
 #globalSearch {
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--border-color);
     padding: 0.8rem 1.5rem;
     font-size: 1.1rem;
+    transition: all 0.3s ease;
 }
 
-#globalSearch:极 focus {
-    box-shadow: none;
-    border-color: #6366F1;
+#globalSearch:focus {
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    border-color: var(--primary-color);
 }
 
 .search-container .form-select {
@@ -179,109 +202,137 @@ body {
 .search-container .btn {
     padding: 0.8rem 1.5rem;
     font-size: 1.1rem;
-    background-color: #6366F1;
-    border-color: #6366F极 1;
+    background: var(--gradient-primary);
+    border: none;
     color: white;
     transition: all 0.3s ease;
+    font-weight: 600;
 }
 
 .search-container .btn:hover {
-    background-color: #4F46E5;
-    border-color: #4F46E5;
-    transform: translateY(-1px);
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
 
 /* İstatistik Kartları */
 .stats-section {
-    margin: 2rem 0;
+    margin: 2.5rem 0;
 }
 
 .stat-card {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--gradient-primary);
+    opacity: 0;
     transition: all 0.3s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
 }
 
 .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     color: white;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card:hover .stat-icon {
-    transform: scale(1.1);
+    transform: scale(1.15) rotate(5deg);
 }
 
 .bg-blue {
-    background-color: #4F46E5;
+    background: linear-gradient(135deg, #6c5ce7, #5649c0);
 }
 
 .bg-green {
-    background-color: #10B981;
+    background: linear-gradient(135deg, #00cec9, #0b9b97);
 }
 
 .bg-purple {
-    background-color: #8B5CF6;
+    background: linear-gradient(135deg, #a29bfe, #7c6bfb);
 }
 
 .bg-orange {
-    background-color: #F59E0B;
+    background: linear-gradient(135deg, #ff7675, #e84d4b);
 }
 
 .stat-card .card-subtitle {
-    color: #64748B;
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
     font-weight: 500;
+    margin-bottom: 0.5rem;
 }
 
 .stat-card .card-title {
-    color: #1E293B;
-    font-size: 1.8rem;
-    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
 }
 
 /* Tablo Stilleri */
 .table-wrapper {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 极 0.05);
-    padding: 1.5rem;
-    margin-top: 2rem;
-    border: 1px solid #CBD5E1;
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(108, 92, 231, 0.1);
+    padding: 1.8rem;
+    margin-top: 2.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.table-wrapper:hover {
+    box-shadow: 0 12px 40px rgba(108, 92, 231, 0.15);
+    transform: translateY(-2px);
 }
 
 /* Tablo Başlıkları için Yeni Stil */
 .table thead th {
-    background-color: #F8FAFF;
-    border-bottom: 2px solid #CBD5E1;
+    background-color: rgba(108, 92, 231, 0.05);
+    border-bottom: 2px solid rgba(108, 92, 231, 0.2);
     font-weight: 700;
-    color: #64748B;
+    color: var(--primary-color);
     font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 1rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    padding: 1.2rem 1rem;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 .table tbody tr {
     cursor: pointer;
     transition: all 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .table tbody tr:hover {
-    background-color: #F8FAFF;
+    background-color: rgba(108, 92, 231, 0.05);
 }
 
 /* DataTables Özelleştirmeleri */
