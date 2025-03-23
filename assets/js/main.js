@@ -119,7 +119,24 @@ const dataTableConfig = {
             buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
         }
     ],
-    responsive: true,
+    responsive: {
+        details: false,
+        breakpoints: [
+            { name: 'desktop', width: Infinity },
+            { name: 'tablet', width: 1024 },
+            { name: 'phone', width: 480 }
+        ]
+    },
+    columnDefs: [
+        {
+            targets: [2, 3, 4], // Yayın Yılı, Yayın Türü ve Dil sütunları
+            className: 'desktop tablet' // Sadece desktop ve tablet'te görünecek
+        },
+        {
+            targets: [0, 1], // Başlık ve Yazar sütunları
+            className: 'all' // Her zaman görünecek
+        }
+    ],
     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tümü"]]
 };
 
